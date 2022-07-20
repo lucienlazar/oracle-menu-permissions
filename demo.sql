@@ -1,99 +1,70 @@
--- write is the root of the first tree. contains posts and pages
-insert into menu_items(menu_item_id, menu_parent_id, menu_item_order, menu_item_label)
-  values(1, null, 1, 'Write');
--- posts is a branch in the write tree. contains categories code and courses
-insert into menu_items(menu_item_id, menu_parent_id, menu_item_order, menu_item_label)
-  values(2, 1, 1, 'Posts');
--- pages is a branch in the write tree. contains homepage and contact
-insert into menu_items(menu_item_id, menu_parent_id, menu_item_order, menu_item_label)
-  values(3, 1, 2, 'Pages');
--- code is a leaf in the posts branch
-insert into menu_items(menu_item_id, menu_parent_id, menu_item_order, menu_item_label)
-  values(4, 2, 1, 'Code');
--- courses is a leaf in the posts branch
-insert into menu_items(menu_item_id, menu_parent_id, menu_item_order, menu_item_label)
-  values(5, 2, 2, 'Courses');
--- homepage is a leaf in the pages branch
-insert into menu_items(menu_item_id, menu_parent_id, menu_item_order, menu_item_label)
-  values(6, 3, 1, 'Homepage');
--- contact is a leaf in the pages branch
-insert into menu_items(menu_item_id, menu_parent_id, menu_item_order, menu_item_label)
-  values(7, 3, 2, 'Contact');
--- moderate is the root of the second tree. contains comments and users
-insert into menu_items(menu_item_id, menu_parent_id, menu_item_order, menu_item_label)
-  values(8, null, 2, 'Moderate');
--- comments is a leaf in the moderate tree
-insert into menu_items(menu_item_id, menu_parent_id, menu_item_order, menu_item_label)
-  values(9, 8, 1, 'Comments');
--- users is a leaf in the moderate tree
-insert into menu_items(menu_item_id, menu_parent_id, menu_item_order, menu_item_label)
-  values(10, 8, 2, 'Users');
+-- add roles
+begin
+  users_management.add_role('Junior Salesman');
+  users_management.add_role('Salesman');
+  users_management.add_role('Manager');
+  users_management.add_role('Administrator');
+end;
+/
+-- add users
+begin
+  users_management.add_user('Chris', 'chris@sales.com', 'chris');
+  users_management.add_user('John', 'john@sales.com', 'john');
+  users_management.add_user('Helena', 'helena@sales.com', 'helena');
+  users_management.add_user('David', 'david@sales.com', 'david');
+end;
+/
+-- set roles
+begin
+  -- Chris is Junior Salesman
+  users_management.set_user_role(1, 1);
+  -- John is Salesman
+  users_management.set_user_role(2, 2);
+  -- Helena is Manager and Administrator
+  users_management.set_user_role(3, 3);
+  users_management.set_user_role(3, 4);
+  -- David is Manager
+  users_management.set_user_role(4, 3);
+end;
+/
+-- add menu items
+begin
+  menu_management.add_menu_item('Sales', null, 1);
+  menu_management.add_menu_item('Sales Data', 1, 1);
+  menu_management.add_menu_item('Sales Reports', 1, 2);
+  menu_management.add_menu_item('Management', null, 2);
+  menu_management.add_menu_item('Assignments', 4, 1);
+  menu_management.add_menu_item('Bonuses', 4, 2);
+  menu_management.add_menu_item('Administration', null, 3);
+  menu_management.add_menu_item('Documents', 7, 1);
+  -- we change the order of the leaves that have as parent Administration
+  -- Accounts gets order 1 and Documents will get order 2
+  menu_management.add_menu_item('Accounts', 7, 1);
+end;
+/
+-- set menu permissions per roles
+begin
+  -- Junior Salesman has permissions on Sales Data
+  menu_management.set_role_permission(2, 1);
+  -- Salesman has permissions on Sales, including Sales Data and Sales Reports
+  menu_management.set_role_permission(1, 2);
+  -- Manager has permissions on Management, including Assignments and Bonuses
+  menu_management.set_role_permission(4, 3);
+  -- Administrator has permissions on Administration, including Accounts and Documents
+  menu_management.set_role_permission(7, 4);
+end;
+/
+-- set special menu permissions per users
+begin
+  -- David has a separate permission on Documents
+  menu_management.set_user_permission(8, 4);
+end;
+/
 
--- admin role will have permissions on all menu
-insert into roles(role_id, role_name)
-  values(1, 'Admin');
--- writer role will have permission to write posts
-insert into roles(role_id, role_name)
-  values(2, 'Writer');
--- moderator role will have permission to moderate comments
-insert into roles(role_id, role_name)
-  values(3, 'Moderator');
-
--- picard will be admin
-insert into users(user_id, user_name, user_mail, user_login)
-  values(1, 'Picard', 'picard@tng.com', 'picard');
--- data will be writer
-insert into users(user_id, user_name, user_mail, user_login)
-  values(2, 'Data', 'data@tng.com', 'data');
--- troy will be writer and moderator
-insert into users(user_id, user_name, user_mail, user_login)
-  values(3, 'Troy', 'troy@tng.com', 'troy');
--- riker will be writer and will have a separate permission to write on contact page
-insert into users(user_id, user_name, user_mail, user_login)
-  values(4, 'Riker', 'riker@tng.com', 'riker');
-
--- roles of each user
-insert into users_roles(user_id, role_id)
-  values(1, 1);
-insert into users_roles(user_id, role_id)
-  values(2, 2);
-insert into users_roles(user_id, role_id)
-  values(3, 2);
-insert into users_roles(user_id, role_id)
-  values(3, 3);
-insert into users_roles(user_id, role_id)
-  values(4, 2);
-
--- permissions for roles
-insert into menu_roles(menu_item_id, role_id)
-  values(1, 1);
-insert into menu_roles(menu_item_id, role_id)
-  values(8, 1);
-insert into menu_roles(menu_item_id, role_id)
-  values(2, 2);
-insert into menu_roles(menu_item_id, role_id)
-  values(9, 3);
-
--- permissions for users
-insert into menu_users(menu_item_id, user_id)
-  values(7, 4);
-
--- permissions for role with trees permission - administrator
-select user_id, menu_permissions.get_menu_permissions(user_id) permissions 
-  from users 
- where user_id = 1;
-
--- 2 -- permissions for role with branch permission - writer
-select user_id, menu_permissions.get_menu_permissions(user_id) permissions 
-  from users 
- where user_id = 2;
-
--- 3 -- permissions for two roles with branch permissions - writer and moderator
-select user_id, menu_permissions.get_menu_permissions(user_id) permissions 
-  from users 
- where user_id = 3;
-
--- 4 -- permissions for role with branch permissions plus user with leaf permission - writer and contact page
-select user_id, menu_permissions.get_menu_permissions(user_id) permissions 
-  from users 
- where user_id = 4;
+-- Chris is Junior Salesman, has direct permission on Sales Data (2) and indirect on parent Sales (1)
+-- John is Salesman, has direct permission on Sales (1) and indirect on children  Sales Data (2) and Sales Reports (3)
+-- Helena is Manager and Administrator, has direct permission on Management (4) and Administration (7)
+-- and indirect on children Assignments (5), Bonuses (6), Documents (8) and Accounts (9)
+-- David is Manager, has direct permission on Management (4) and indirect on children Assignments (5) and Bonuses (6)
+-- also, David has a special direct permission on Documents (8) and indirect on parent Administration (7)
+select user_name, menu_management.get_menu_management(user_id) from users;
