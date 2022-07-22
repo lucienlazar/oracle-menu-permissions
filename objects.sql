@@ -167,7 +167,7 @@ create or replace package menu_management as
     pi_user_id in integer);
     
   -- returns a comma separated list of permissions on menu items for the given user
-  function get_menu_management(
+  function get_menu_permissions(
     pi_user_id in integer) return varchar2;
 
 end;
@@ -300,7 +300,7 @@ create or replace package body menu_management as
   end;
   
   -- returns a comma separated list of permissions on menu items for the given user
-  function get_menu_management(
+  function get_menu_permissions(
     pi_user_id in integer) return varchar2 as
     permissions varchar2(100);
   begin
